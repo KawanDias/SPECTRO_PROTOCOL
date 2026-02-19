@@ -5,14 +5,14 @@ pragma solidity ^0.8.20;
 // External imports //
 //////////////////////
 
-
+import {Ownable} from "@solady/auth/Ownable.sol";
 import {ECDSA} from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import {EIP712} from "@solady/utils/EIP712.sol";
 import {SignatureCheckerLib} from "@solady/utils/SignatureCheckerLib.sol";
 import {SafeTransferLib} from "@solady/utils/SafeTransferLib.sol";
 import "./interfaces/ISpectroEvents.sol";
 
-contract  SpectroCore is EIP712, ISpectroEvents{
+contract  SpectroCore is EIP712, ISpectroEvents, Ownable{
     using SignatureCheckerLib for address;
     using SafeTransferLib for address;
     using ECDSA for bytes32;
@@ -27,6 +27,7 @@ contract  SpectroCore is EIP712, ISpectroEvents{
     mapping(uint256 => bool) public usedNonces;
 
     constructor(address _beneficiary) {
+        _initializeOwner(msg.sender); 
         BENEFICIARY = _beneficiary;
     }
 
@@ -105,6 +106,28 @@ contract  SpectroCore is EIP712, ISpectroEvents{
 
     emit IntentFulfilled(intent.user, msg.sender, intent.amount, intent.targetChainId, intent.conditionHash);
     } 
+
+    function executeIntent(
+        address solver,
+        uint256 amount,
+        uint256 nonce,
+        bytes calldata signature
+    ) external {
+        
+        bytes32 structHash = keccak256(abi.encode(INTENT_TYPEHASH, solver, amount, nonce));
+        bytes32 digest = _hashTypedData(structHash);
+
+        address signer = ECDSA.recover(digest, signature);
+
+        require(signer == owner(), "S.P.E.C.T.R.O: Unauthorized");
+        require(!usedNonces[nonce], "S.P.E.C.T.R.O: Nonce already used");
+
+        usedNonces[nonce] = true;
+
+        SafeTransferLib.safeTransferETH(solver, amount);
+
+        emit IntendSettled(solver, signer, amount, 0);
+    }
 
 
     /**

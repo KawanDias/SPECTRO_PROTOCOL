@@ -6,31 +6,38 @@ import "../src/SpectroCore.sol";
 
 contract SimulateSolver is Script {
    function run() external {
-    uint256 ownerPK = vm.envUint("PRIVATE_KEY");
-    address solver = vm.addr(ownerPK);
+   uint256 signerPrivateKey = vm.envUint("PRIVATE_KEY");
+   address receiver = vm.addr(signerPrivateKey);
+   SpectroCore spectro = SpectroCore(payable(0x38Ac3bcb71434A68E4c30DCC0b987F97a10Bcd3d));
 
-    SpectroCore spectro = SpectroCore(payable(0xa4EAB60D6aB09A43f59B0BFb97F806523Ac412cD));
+   SpectroCore.WithdrawalIntent memory intent = SpectroCore.WithdrawalIntent({
+      receiver: receiver,
+      amount: 0.001 ether,
+      fee: 0.0001 ether,
+      nonce: 1,
+      deadline: block.timestamp + 1 hours,
+      targetChainId: 11155111,
+      conditionHash: bytes32(0)
+   });   
 
-    uint256 amount = 0.001 ether;
-    uint256 nonce = 1; 
+   bytes32 structHash = keccak256(abi.encode(
+      spectro.INTENT_TYPEHASH(),
+      intent.receiver,
+      intent.amount,
+      intent.fee,
+      intent.nonce,
+      intent.deadline,
+      intent.targetChainId,
+      intent.conditionHash
+   ));
 
-    console.log("Generating signature EIP-712 for interoperability...");
+   bytes32 digest = spectro.computeDigest(structHash);
 
-    bytes32 structHash = keccak256(abi.encode(
-                keccak256("WithdrawIntent(address solver,uint256 amount,uint256 nonce)"),
-                solver,
-                amount,
-                nonce
-            ));
-            bytes32 digest = spectro.computeDigest(structHash);
+   (uint8 v, bytes32 r, bytes32 s) = vm.sign(signerPrivateKey, digest);
+   bytes memory signature = abi.encodePacked(r, s, v);
 
-            (uint8 v, bytes32 r, bytes32 s) = vm.sign(ownerPK, digest);
-            bytes memory signature = abi.encodePacked(r, s, v);
-
-            vm.startBroadcast(ownerPK);
-            spectro.executeIntent(solver, amount, nonce, signature);
-            vm.stopBroadcast();
-
-            console.log("Success! Solver executed the intent without cost for the user.");
-   }
+   vm.startBroadcast(signerPrivateKey);
+   spectro.executeIntent(intent, signature);
+   vm.stopBroadcast();
+  } 
 }

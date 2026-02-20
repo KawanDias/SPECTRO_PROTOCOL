@@ -18,8 +18,8 @@ contract  SpectroCore is EIP712, ISpectroEvents, Ownable{
     using ECDSA for bytes32;
 
     // --- Protocol constants --- //
-    bytes32 private constant INTENT_TYPEHASH = 
-        keccak256("WithdrawIntent(address solver,uint256 amount,uint256 nonce)");
+    bytes32 public constant INTENT_TYPEHASH = 
+        keccak256("WithdrawalIntent(address receiver,uint256 amount,uint256 fee,uint256 nonce,uint256 deadline,uint256 targetChainId,bytes32 conditionHash)");
 
     uint256 public constant FEE_BPS = 50; // 0.5% Operator fee
 
@@ -44,12 +44,13 @@ contract  SpectroCore is EIP712, ISpectroEvents, Ownable{
     /////////////
 
     struct WithdrawalIntent {
-        address user;           // who wants the money
-        uint256 amount;         // how much
-        uint256 nonce;          // protect against replay attacks
-        uint256 targetChainId;  // for cross-chain intents
-        uint256 deadline;        // intent expiration
-        bytes32 conditionHash;  // for conditional intents
+        address receiver;         
+        uint256 amount;       
+        uint256 fee;       
+        uint256 nonce; 
+        uint256 deadline; 
+        uint256 targetChainId;
+        bytes32 conditionHash;    
     }
 
 
@@ -81,13 +82,15 @@ contract  SpectroCore is EIP712, ISpectroEvents, Ownable{
         bytes32 proofOfPayment // ID transation on another chain
     ) external {
         // 1. Verify if intent already executed
-        bytes32 intentHash = _hashTypedData (keccak256(abi.encode(keccak256("WithdrawalIntent(address user, uint256 amount,uint256 nonce,uint256 deadline,uint256 targetChainId,bytes32 conditionHash)"),
-        intent.user,
-        intent.amount,
-        intent.nonce,
-        intent.deadline,
-        intent.targetChainId,
-        intent.conditionHash
+        bytes32 intentHash = _hashTypedData (keccak256(abi.encode(
+            INTENT_TYPEHASH,
+            intent.receiver,
+            intent.amount,
+            intent.fee,
+            intent.nonce,
+            intent.deadline,
+            intent.targetChainId,
+            intent.conditionHash
         )));
 
         require(!executedIntents[intentHash], "Spectro: Intent already executed");
@@ -95,7 +98,7 @@ contract  SpectroCore is EIP712, ISpectroEvents, Ownable{
 
     // 2. Verify user's signature
     address recoveredUser = ECDSA.recover(intentHash, signature);
-    require(recoveredUser == intent.user, "Spectro: Invalid signature");
+    require(recoveredUser == intent.receiver, "Spectro: Invalid signature");
 
     // 3. Mark as executed before any state changes to prevent reentrancy
     executedIntents[intentHash] = true;
@@ -104,29 +107,41 @@ contract  SpectroCore is EIP712, ISpectroEvents, Ownable{
     // contract releases funds that were "trapped" in the source network to Solver
     _transferFunds(msg.sender, intent.amount);
 
-    emit IntentFulfilled(intent.user, msg.sender, intent.amount, intent.targetChainId, intent.conditionHash);
+    emit IntentFulfilled(intent.receiver, msg.sender, intent.amount, intent.targetChainId, intent.conditionHash);
     } 
 
     function executeIntent(
-        address solver,
-        uint256 amount,
-        uint256 nonce,
-        bytes calldata signature
+      WithdrawalIntent calldata intent,
+      bytes calldata signature
     ) external {
-        
-        bytes32 structHash = keccak256(abi.encode(INTENT_TYPEHASH, solver, amount, nonce));
+        require(block.timestamp <= intent.deadline, "S.P.E.C.T.R.O: Intent expired"); 
+        require(!usedNonces[intent.nonce], "S.P.E.C.T.R.O: Nonce already used");
+
+        bytes32 structHash = keccak256(abi.encode(
+                INTENT_TYPEHASH,
+                intent.receiver,
+                intent.amount,
+                intent.fee,
+                intent.nonce,
+                intent.deadline,    
+                intent.targetChainId,
+                intent.conditionHash
+        ));
         bytes32 digest = _hashTypedData(structHash);
 
         address signer = ECDSA.recover(digest, signature);
-
         require(signer == owner(), "S.P.E.C.T.R.O: Unauthorized");
-        require(!usedNonces[nonce], "S.P.E.C.T.R.O: Nonce already used");
 
-        usedNonces[nonce] = true;
+        usedNonces[intent.nonce] = true;
 
-        SafeTransferLib.safeTransferETH(solver, amount);
+        if (intent.fee > 0) {
+            SafeTransferLib.safeTransferETH(owner(), intent.fee);
+        }
 
-        emit IntendSettled(solver, signer, amount, 0);
+        SafeTransferLib.safeTransferETH(msg.sender, intent.fee);
+
+        emit IntendSettled(msg.sender, signer, intent.amount, intent.fee);
+    
     }
 
 
@@ -146,7 +161,7 @@ contract  SpectroCore is EIP712, ISpectroEvents, Ownable{
         require(!usedNonces[nonce], "S.P.E.C.T.R.O: Nonce already used");
 
         // 1. Rebuild intent hash
-        bytes32 structHash = keccak256(abi.encode(INTENT_TYPEHASH, solver, amount, nonce));
+        bytes32 structHash = keccak256(abi.encode(INTENT_TYPEHASH,solver,amount,nonce));
         bytes32 digest = _hashTypedData(structHash);
 
         // 2. Verify signature

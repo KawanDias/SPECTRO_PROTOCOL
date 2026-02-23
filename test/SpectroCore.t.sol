@@ -14,6 +14,8 @@ contract SpectroCoreTeste is Test {
     uint256 beneficiaryKey = 0xA11CE; // Patrick's private key
     address beneficiary = vm.addr(beneficiaryKey);
     address solver = address(0xB0B); // Operator's address
+    address user = address(0x123);
+
 
     ///////////////
     // FUNCTIONS //
@@ -24,78 +26,89 @@ contract SpectroCoreTeste is Test {
         vm.deal(address(spectro), 100 ether); // Fund the contract for testing
     }
 
-    function test_SucessfulFulfill() public {
-        uint256 amount = 1 ether;
-        uint256 nonce = 42;
-        uint256 initialBalance = solver.balance;
+    function test_SucessfulExecuteIntent() public {
+        SpectroCore.WithdrawalIntent memory intent = SpectroCore.WithdrawalIntent({
+            receiver: user,
+            amount: 1 ether,
+            fee: 0.1 ether,
+            nonce: 1,
+            deadline: block.timestamp + 1 hours,
+            targetChainId: block.chainid,
+            conditionHash: bytes32(0)
+        });
 
-        // Gerando a assinatura dentro do teste
-        bytes32 structHash = keccak256(abi.encode(
-            keccak256("WithdrawIntent(address solver,uint256 amount,uint256 nonce)"),
-            solver,
-            amount,
-            nonce
-        ));
-        bytes32 digest = _getEIP712Digest(structHash);
+        // Agora o computeDigest aceita a struct 'intent' diretamente
+        bytes32 digest = spectro.computeDigest(intent);
+
+        // Assina (usando a chave do BENEFICIARY definido no setUp)
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(beneficiaryKey, digest);
         bytes memory signature = abi.encodePacked(r, s, v);
 
-        // -- Execution -- //
-        spectro.fullfill(solver, amount, nonce, signature);
+        // Execução
+        vm.prank(solver);
+        spectro.executeIntent(intent, signature);
 
-        ////////////////////////
-        // -- Verification -- //
-        ////////////////////////
-
-        // Expected: 1ETH + 0.5% (0.005ETH)
-        assertEq(solver.balance, initialBalance + 1.005 ether);
-        assertTrue(spectro.usedNonces(nonce));
-    }  
+        // Verificação
+        assertEq(user.balance, 1 ether);
+        assertTrue(spectro.usedNonces(1));
+    }
 
     // == REPLAY ATACK TEST == //
-    function test_RevertOnReplayAttack() public {
-        uint256 amount = 1 ether;
-        uint256 nonce = 101;
+   function test_RevertOnReplayAttack() public {
+    // 1. Defina a intenção usando a Struct
+    SpectroCore.WithdrawalIntent memory intent = SpectroCore.WithdrawalIntent({
+        receiver: user,
+        amount: 1 ether,
+        fee: 0.1 ether,
+        nonce: 101, 
+        deadline: block.timestamp + 1 hours,
+        targetChainId: block.chainid,
+        conditionHash: bytes32(0)
+    });
 
-        bytes32 structHash = keccak256(abi.encode(
-            keccak256("WithdrawIntent(address solver,uint256 amount,uint256 nonce)"),
-            solver,
-            amount,
-            nonce
-        ));
-        bytes32 digest = _getEIP712Digest(structHash);
-        (uint8 v, bytes32 r, bytes32 s) = vm.sign(beneficiaryKey, digest);
-        bytes memory signature = abi.encodePacked(r, s, v);
+    // Generate digest and Signature
+    bytes32 digest = spectro.computeDigest(intent);
+    (uint8 v, bytes32 r, bytes32 s) = vm.sign(beneficiaryKey, digest);
+    bytes memory signature = abi.encodePacked(r, s, v);
 
-        // First Withdrawal - should succeed
-        spectro.fullfill(solver, amount, nonce, signature);
+    // First Execution - may pass
+    vm.prank(solver);
+    spectro.executeIntent(intent, signature);
 
-        // Second Withdrawal - should fail and revert
-        vm.expectRevert("S.P.E.C.T.R.O: Nonce already used");
-        spectro.fullfill(solver, amount, nonce, signature);
-    }
+    // Second Execution - may fail
+    vm.expectRevert("S.P.E.C.T.R.O: Nonce already used");
+    vm.prank(solver);
+    spectro.executeIntent(intent, signature);
+}
 
     // == FUZZ ATACK TEST == //    
     function test_FuzzFullfillWithRandomAmounts(uint256 randomAmount) public {
-        uint256 amount = bound(randomAmount, 0.0001 ether, 10 ether);
-        uint256 nonce = uint256(keccak256(abi.encode(randomAmount)));
+    uint256 amount = bound(randomAmount, 0.001 ether, 10 ether);
+    uint256 nonce = uint256(keccak256(abi.encode(randomAmount)));
 
-        bytes32 structHash = keccak256(abi.encode(
-            keccak256("WithdrawIntent(address solver,uint256 amount,uint256 nonce)"),
-            solver,
-            amount,
-            nonce
-        ));
-        bytes32 digest = _getEIP712Digest(structHash);
-        (uint8 v, bytes32 r, bytes32 s) = vm.sign(beneficiaryKey, digest);
-        bytes memory signature = abi.encodePacked(r, s, v);
+    // Random value struct
+    SpectroCore.WithdrawalIntent memory intent = SpectroCore.WithdrawalIntent({
+        receiver: user,
+        amount: amount,
+        fee: (amount * spectro.FEE_BPS()) / 10000,
+        nonce: nonce,
+        deadline: block.timestamp + 1 hours,
+        targetChainId: block.chainid,
+        conditionHash: bytes32(0)
+    });
 
-        uint256 balanceBefore = solver.balance;
-        spectro.fullfill(solver, amount, nonce, signature);
+    // Generate digest and signature
+    bytes32 digest = spectro.computeDigest(intent);
+    (uint8 v, bytes32 r, bytes32 s) = vm.sign(beneficiaryKey, digest);
+    bytes memory signature = abi.encodePacked(r, s, v);
 
-        uint256 expectedFee = (amount * spectro.FEE_BPS()) / 10000;
-        assertEq(solver.balance, balanceBefore + amount + expectedFee);
-    } 
+    // Execution & Verification
+    uint256 balanceBefore = user.balance;
+    vm.prank(solver);
+    spectro.executeIntent(intent, signature);
+
+    assertEq(user.balance, balanceBefore + amount);
+}
 
     //////////////////////////////////////
     // Foundry Helper to digest EIP-712 //

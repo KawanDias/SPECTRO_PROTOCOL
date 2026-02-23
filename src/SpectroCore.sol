@@ -62,7 +62,17 @@ contract  SpectroCore is EIP712, ISpectroEvents, Ownable{
         to.safeTransferETH(amount);
     } 
 
-    function computeDigest(bytes32 structHash) public view returns (bytes32) {
+  function computeDigest(WithdrawalIntent memory intent) public view returns (bytes32) {
+        bytes32 structHash = keccak256(abi.encode(
+            INTENT_TYPEHASH,
+            intent.receiver,
+            intent.amount,
+            intent.fee,
+            intent.nonce,
+            intent.deadline,
+            intent.targetChainId,
+            intent.conditionHash
+        ));
         return _hashTypedData(structHash);
     }
 
@@ -117,33 +127,18 @@ contract  SpectroCore is EIP712, ISpectroEvents, Ownable{
         require(block.timestamp <= intent.deadline, "S.P.E.C.T.R.O: Intent expired"); 
         require(!usedNonces[intent.nonce], "S.P.E.C.T.R.O: Nonce already used");
 
-        bytes32 structHash = keccak256(abi.encode(
-                INTENT_TYPEHASH,
-                intent.receiver,
-                intent.amount,
-                intent.fee,
-                intent.nonce,
-                intent.deadline,    
-                intent.targetChainId,
-                intent.conditionHash
-        ));
-        bytes32 digest = _hashTypedData(structHash);
+        bytes32 digest = computeDigest(intent);
 
         address signer = ECDSA.recover(digest, signature);
-        require(signer == owner(), "S.P.E.C.T.R.O: Unauthorized");
-
+ 
+        require(signer == BENEFICIARY, "S.P.E.C.T.R.O: Unauthorized");
         usedNonces[intent.nonce] = true;
-
+        SafeTransferLib.safeTransferETH(intent.receiver, intent.amount);
         if (intent.fee > 0) {
-            SafeTransferLib.safeTransferETH(owner(), intent.fee);
+            SafeTransferLib.safeTransferETH(msg.sender, intent.fee);
         }
-
-        SafeTransferLib.safeTransferETH(msg.sender, intent.fee);
-
         emit IntendSettled(msg.sender, signer, intent.amount, intent.fee);
-    
     }
-
 
     /**
     * @notice Liquid an intencion for withdrawn presented by an Operator

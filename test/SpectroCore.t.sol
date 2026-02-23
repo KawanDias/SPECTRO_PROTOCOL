@@ -37,18 +37,16 @@ contract SpectroCoreTeste is Test {
             conditionHash: bytes32(0)
         });
 
-        // Agora o computeDigest aceita a struct 'intent' diretamente
         bytes32 digest = spectro.computeDigest(intent);
 
-        // Assina (usando a chave do BENEFICIARY definido no setUp)
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(beneficiaryKey, digest);
         bytes memory signature = abi.encodePacked(r, s, v);
 
-        // Execução
+        // Execution //
         vm.prank(solver);
         spectro.executeIntent(intent, signature);
 
-        // Verificação
+        // Verification //
         assertEq(user.balance, 1 ether);
         assertTrue(spectro.usedNonces(1));
     }

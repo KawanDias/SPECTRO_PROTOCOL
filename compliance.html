@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Solver Liquidity</title>
+    <link id="theme-stylesheet" rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <header>
+        <a href="index.html" class="logo">SPECTRO</a>
+        <nav>
+            <ul>
+                <li><a href="about.html">About</a></li>
+                <li><a href="content.html">Content</a></li>
+                <li><a href="contact.html">Contact</a></li>
+                <li>
+                    <button id="theme-toggle" class="theme-toggle" aria-pressed="false" title="Toggle theme"
+                        type="button">
+                        <svg class="icon icon-sun" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"
+                            aria-hidden="true">
+                            <circle cx="12" cy="12" r="4" />
+                        </svg>
+                        <svg class="icon icon-moon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"
+                            aria-hidden="true">
+                            <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z" />
+                        </svg>
+                        <span class="visually-hidden">Toggle theme</span>
+                    </button>
+                </li>
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        <h1>Solver Liquidity — The Fulfillment Engine</h1>
+
+        <p>Solvers are specialized off-chain agents that monitor the SPECTRO intent mempool to identify and fulfill user
+            requests. By providing immediate liquidity on the destination chain, solvers abstract away the waiting times
+            typical of traditional cross-chain bridges.</p>
+
+        <h2>Role of the Solver</h2>
+        <ul>
+            <li><strong>Instant Fulfillment:</strong> Solvers use their own capital to satisfy the user's intent
+                immediately, assuming the short-term bridging risk.</li>
+            <li><strong>Efficient Routing:</strong> They compete to provide the most cost-effective execution, ensuring
+                users receive the best possible rates.</li>
+            <li><strong>Technical Execution:</strong> Solvers call the <code>executeIntent</code> function, providing
+                the necessary proofs and the user's EIP-712 signature.</li>
+        </ul>
+
+        <h2>Incentive Mechanism</h2>
+        <p>Solvers are motivated by a <strong>Protocol Fee</strong> defined within the <code>WithdrawalIntent</code>.
+            Once an intent is successfully proven and fulfilled on the target chain, the <code>SpectroCore</code>
+            contract releases the original funds plus the fee to the solver's address.</p>
+
+        <h2>Operational Requirements</h2>
+        <ol>
+            <li><strong>High Liveness:</strong> Solvers must maintain constant uptime to catch and fulfill intents
+                before they expire.</li>
+            <li><strong>Capital Management:</strong> Adequate liquidity across multiple chains is required to compete
+                effectively in the network.</li>
+            <li><strong>Proof Generation:</strong> Solvers are responsible for monitoring source chain states to trigger
+                the <code>fulfillCondition</code> logic when required.</li>
+            <li><strong>Gas Optimization:</strong> Using advanced execution strategies to minimize on-chain costs during
+                the fulfillment process.</li>
+        </ol>
+
+        <h2>Trustless Settlement</h2>
+        <p>The SPECTRO Protocol ensures that solvers cannot claim funds without providing valid cryptographic proof of
+            fulfillment. The <code>provenConditions</code> mapping acts as a decentralized ledger, protecting both the
+            user's assets and the solver's rewards.</p>
+
+        <h2>Solver Risks</h2>
+        <p>Solvers face risks such as chain reorgs or failed proof validations. To mitigate this, SPECTRO implements
+            strict validation checks and supports decentralized oracles for state verification.</p>
+
+        <a class="back" href="content.html">← Back to Intents</a>
+    </main>
+
+    <footer>© 2026 - KawanDias</footer>
+
+    <script>
+        (function () {
+            const link = document.getElementById('theme-stylesheet');
+            const btn = document.getElementById('theme-toggle');
+            function updateButton(href) {
+                if (!btn) return;
+                const isLight = !!(href && href.includes('style.light.css'));
+                btn.setAttribute('aria-pressed', isLight ? 'true' : 'false');
+                btn.classList.toggle('is-light', isLight);
+                btn.title = isLight ? 'Dark Mode' : 'Light Mode';
+            }
+            window.toggleTheme = function () {
+                if (!link) return;
+                const href = link.getAttribute('href') || 'style.css';
+                const next = href.includes('style.light.css') ? 'style.css' : 'style.light.css';
+                link.setAttribute('href', next);
+                localStorage.setItem('theme', next);
+                updateButton(next);
+            };
+            const saved = localStorage.getItem('theme');
+            if (saved && link) link.setAttribute('href', saved);
+            updateButton(link && link.getAttribute('href'));
+            if (btn) btn.addEventListener('click', toggleTheme);
+        })();
+    </script>
+</body>
+
+</html>

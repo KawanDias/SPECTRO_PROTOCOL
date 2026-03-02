@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EIP-712 Compliance</title>
+    <link id="theme-stylesheet" rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <header>
+        <a href="index.html" class="logo">SPECTRO</a>
+        <nav>
+            <ul>
+                <li><a href="about.html">About</a></li>
+                <li><a href="content.html">Content</a></li>
+                <li><a href="contact.html">Contact</a></li>
+                <li>
+                    <button id="theme-toggle" class="theme-toggle" aria-pressed="false" title="Toggle theme"
+                        type="button">
+                        <svg class="icon icon-sun" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"
+                            aria-hidden="true">
+                            <circle cx="12" cy="12" r="4" />
+                        </svg>
+                        <svg class="icon icon-moon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"
+                            aria-hidden="true">
+                            <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z" />
+                        </svg>
+                        <span class="visually-hidden">Toggle theme</span>
+                    </button>
+                </li>
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        <h1>EIP-712 Compliance — Technical Standards</h1>
+
+        <p>EIP-712 is a standard for hashing and signing typed structured data as opposed to just arbitrary byte
+            strings. In SPECTRO, this ensures that users can verify the exact details of their intent—such as receiver,
+            amount, and deadline—before authorizing a signature.</p>
+
+        <h2>Core Benefits</h2>
+        <ul>
+            <li><strong>Human-Readable Signing:</strong> Transparent authorization by showing the actual data fields in
+                the wallet interface instead of a raw hex string.</li>
+            <li><strong>Type Safety:</strong> Prevents signature forgery by enforcing a strict schema for all intents
+                through specific Typehashes.</li>
+            <li><strong>Domain Separation:</strong> Protects users from replay attacks across different chains or dApps
+                using unique Domain Separators.</li>
+        </ul>
+
+        <h2>The Signing Workflow</h2>
+        <p>When a user initiates an intent, SPECTRO generates a <strong>Typed Data Structure</strong>. This data is
+            hashed according to the EIP-712 standard and presented to the wallet. Once signed, the <strong>v, r,
+                s</strong> components of the signature are sent to the contract for cryptographic recovery and
+            verification.</p>
+
+        <h2>Security Best Practices</h2>
+        <ol>
+            <li><strong>Verify Domain:</strong> Always check that the signature request matches the SPECTRO Protocol
+                name and version.</li>
+            <li><strong>Check Deadlines:</strong> Ensure the intent's deadline is reasonable to prevent late fulfillment
+                risks.</li>
+            <li><strong>Review Parameters:</strong> Carefully inspect the receiver address and target chain ID within
+                the wallet popup.</li>
+            <li><strong>Use Hardware Wallets:</strong> For high-value intents, signing via Ledger or Trezor provides an
+                extra layer of protection.</li>
+        </ol>
+
+        <h2>Technical Implementation</h2>
+        <p>The <code>SpectroCore</code> contract utilizes the <code>computeDigest</code> function to recreate the hash
+            on-chain. It then uses <code>SignatureCheckerLib</code> to validate that the recovered signer matches the
+            intended address, ensuring a trustless execution environment.</p>
+
+        <h2>Common Threats</h2>
+        <p>Phishing attempts often try to mimic EIP-712 requests with incorrect domain separators. Always confirm you
+            are interacting with the official SPECTRO dashboard before signing any structured data.</p>
+
+        <a class="back" href="content.html">← Back to Intents</a>
+    </main>
+
+    <footer>© 2026 - KawanDias</footer>
+
+    <script>
+        (function () {
+            const link = document.getElementById('theme-stylesheet');
+            const btn = document.getElementById('theme-toggle');
+            function updateButton(href) {
+                if (!btn) return;
+                const isLight = !!(href && href.includes('style.light.css'));
+                btn.setAttribute('aria-pressed', isLight ? 'true' : 'false');
+                btn.classList.toggle('is-light', isLight);
+                btn.title = isLight ? 'Dark Mode' : 'Light Mode';
+            }
+            window.toggleTheme = function () {
+                if (!link) return;
+                const href = link.getAttribute('href') || 'style.css';
+                const next = href.includes('style.light.css') ? 'style.css' : 'style.light.css';
+                link.setAttribute('href', next);
+                localStorage.setItem('theme', next);
+                updateButton(next);
+            };
+            const saved = localStorage.getItem('theme');
+            if (saved && link) link.setAttribute('href', saved);
+            updateButton(link && link.getAttribute('href'));
+            if (btn) btn.addEventListener('click', toggleTheme);
+        })();
+    </script>
+</body>
+
+</html>

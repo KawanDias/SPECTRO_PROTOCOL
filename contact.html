@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contact</title>
+
+    <!-- CSS DO TEMA -->
+    <link id="theme-stylesheet" rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <header>
+        <a href="index.html" class="logo">SPECTRO</a>
+
+        <nav>
+            <ul>
+                <li><a href="about.html">About</a></li>
+                <li><a href="content.html">Intents</a></li>
+                <li><a href="contact.html">Contact</a></li>
+
+                <!-- BOTÃO TEMA -->
+                <li>
+                    <button id="theme-toggle" class="theme-toggle" type="button" aria-pressed="false">
+                        <svg class="icon icon-sun" viewBox="0 0 24 24">
+                            <circle cx="12" cy="12" r="4" />
+                        </svg>
+
+                        <svg class="icon icon-moon" viewBox="0 0 24 24">
+                            <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z" />
+                        </svg>
+
+                        <span class="visually-hidden">Alternar tema</span>
+                    </button>
+                </li>
+            </ul>
+        </nav>
+    </header>
+
+    <section class="section contact" id="contact">
+        <h2>Contacts</h2>
+
+        <div class="contact-grid">
+
+            <div class="contact-card">
+                <h3>E-mail</h3>
+                <p>kawndeveloper@gmail.com</p>
+            </div>
+
+            <div class="contact-card">
+                <h3>Discord</h3>
+                <p>Dev's Server</p>
+            </div>
+
+            <div class="contact-card">
+                <h3><a href="https://github.com/KawanDias">GitHub</a></h3>
+            </div>
+
+        </div>
+    </section>
+
+    <footer>© 2026 - KawanDias</footer>
+
+    <!-- ANIMAÇÃO ENTRADA -->
+    <script>
+        window.addEventListener("load", () => {
+            document.getElementById("contact").classList.add("show");
+        });
+    </script>
+
+    <!-- THEME TOGGLE -->
+    <script>
+        (function () {
+            const link = document.getElementById('theme-stylesheet');
+            const btn = document.getElementById('theme-toggle');
+
+            function applyTheme(file) {
+                if (!link) return;
+
+                link.setAttribute('href', file);
+                localStorage.setItem('theme', file);
+
+                const isLight = file === 'style.light.css';
+
+                if (btn) {
+                    btn.classList.toggle('is-light', isLight);
+                    btn.setAttribute('aria-pressed', isLight);
+                }
+            }
+
+            function toggleTheme() {
+                if (!link) return;
+
+                const current = link.getAttribute('href') || 'style.css';
+                const next =
+                    current.includes('style.light.css')
+                        ? 'style.css'
+                        : 'style.light.css';
+
+                applyTheme(next);
+            }
+
+            // carregar tema salvo
+            const saved = localStorage.getItem('theme');
+            if (saved) applyTheme(saved);
+            else applyTheme('style.css');
+
+            // clique botão
+            if (btn) btn.addEventListener('click', toggleTheme);
+        })();
+    </script>
+
+</body>
+
+</html>

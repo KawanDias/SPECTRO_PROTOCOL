@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Intents - Content</title>
+    <link id="theme-stylesheet" rel="stylesheet" href="style.css">
+
+    <style>
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 30px;
+            margin-top: 40px;
+        }
+
+        .mind-card {
+            display: block;
+            text-decoration: none;
+            background: rgba(15, 23, 42, 0.7);
+            border: 1px solid rgba(56, 189, 248, 0.15);
+            border-radius: 18px;
+            padding: 30px;
+            position: relative;
+            overflow: hidden;
+            transform: translateY(40px);
+            opacity: 0;
+            transition: 0.6s ease;
+        }
+
+        .mind-card.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .mind-card::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(120deg, transparent, rgba(56, 189, 248, 0.2), transparent);
+            opacity: 0;
+            transition: 0.4s;
+        }
+
+        .mind-card:hover::before {
+            opacity: 1;
+        }
+
+        .mind-card:hover {
+            transform: translateY(-8px) scale(1.02);
+            border-color: #38bdf8;
+            box-shadow: 0 0 25px rgba(56, 189, 248, 0.25);
+        }
+
+        .mind-card h3 {
+            color: #38bdf8;
+            margin-bottom: 15px;
+            font-size: 22px;
+        }
+
+        .glow-line {
+            height: 2px;
+            width: 80px;
+            background: linear-gradient(90deg, #38bdf8, transparent);
+            margin-bottom: 15px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <header>
+        <a href="index.html" class="logo">SPECTRO</a>
+
+        <nav>
+            <ul>
+                <li><a href="about.html">About</a></li>
+                <li><a href="content.html">Intents</a></li>
+                <li><a href="contact.html">Contact</a></li>
+                <li>
+                    <button id="theme-toggle" class="theme-toggle" aria-pressed="false" title="Alternar tema"
+                        type="button">
+                        <svg class="icon icon-sun" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"
+                            aria-hidden="true">
+                            <circle cx="12" cy="12" r="4" />
+                        </svg>
+                        <svg class="icon icon-moon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"
+                            aria-hidden="true">
+                            <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z" />
+                        </svg>
+                        <span class="visually-hidden">Alternar tema</span>
+                    </button>
+                </li>
+            </ul>
+        </nav>
+    </header>
+
+    <section class="section">
+        <h2>Protocol Core Pillars</h2>
+
+        <div class="grid">
+
+            <a href="architecture.html" class="mind-card">
+                <h3>Intent-Centric Design</h3>
+                <div class="glow-line"></div>
+                <p>A paradigm shift where users define specific outcomes, delegating the execution logic to a
+                    specialized network of solvers.</p>
+            </a>
+
+            <a href="liquidity.html" class="mind-card">
+                <h3>EIP-712 Compliance</h3>
+                <div class="glow-line"></div>
+                <p>Enhanced security through human-readable typed data signing, ensuring full transparency before
+                    transaction authorization.</p>
+            </a>
+
+            <a href="compliance.html" class="mind-card">
+                <h3>Solver Liquidity</h3>
+                <div class="glow-line"></div>
+                <p>Professional agents compete to fulfill intents off-chain, providing immediate capital and optimized
+                    execution rates.</p>
+            </a>
+
+            <a href="settlement.html" class="mind-card">
+                <h3>Cross-Chain Settlement</h3>
+                <div class="glow-line"></div>
+                <p>Seamless value transfer across disparate networks, abstracting the complexity of traditional bridging
+                    mechanisms.</p>
+            </a>
+
+            <a href="fulfillment.html" class="mind-card">
+                <h3>Deterministic Nonces</h3>
+                <div class="glow-line"></div>
+                <p>Advanced anti-replay protection utilizing unique cryptographic identifiers to maintain global state
+                    integrity.</p>
+            </a>
+
+            <a href="protection.html" class="mind-card">
+                <h3>Verifiable Proofs</h3>
+                <div class="glow-line"></div>
+                <p>Cryptographic validation of state conditions, ensuring that rewards are only released upon successful
+                    intent fulfillment.</p>
+            </a>
+
+        </div>
+    </section>
+
+    <footer>© 2026 - KawanDias</footer>
+
+    <script>
+        const cards = document.querySelectorAll('.mind-card');
+
+        const observer = new IntersectionObserver(entries => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('show');
+                }
+            });
+        }, { threshold: 0.2 });
+
+        cards.forEach(card => observer.observe(card));
+    </script>
+
+    <script>
+        (function () {
+            const link = document.getElementById('theme-stylesheet');
+            const btn = document.getElementById('theme-toggle');
+            function updateButton(href) {
+                if (!btn) return;
+                const isLight = !!(href && href.includes('style.light.css'));
+                btn.setAttribute('aria-pressed', isLight ? 'true' : 'false');
+                btn.classList.toggle('is-light', isLight);
+                btn.title = isLight ? 'Modo Escuro' : 'Modo Claro';
+            }
+            window.toggleTheme = function () {
+                if (!link) return;
+                const href = link.getAttribute('href') || 'style.css';
+                const next = href.includes('style.light.css') ? 'style.css' : 'style.light.css';
+                link.setAttribute('href', next);
+                localStorage.setItem('theme', next);
+                updateButton(next);
+            };
+            const saved = localStorage.getItem('theme');
+            if (saved && link) link.setAttribute('href', saved);
+            updateButton(link && link.getAttribute('href'));
+            if (btn) btn.addEventListener('click', toggleTheme);
+        })();
+    </script>
+
+</body>
+
+</html>

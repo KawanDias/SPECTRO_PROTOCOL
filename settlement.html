@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cross-Chain Settlement</title>
+    <link id="theme-stylesheet" rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <header>
+        <a href="index.html" class="logo">SPECTRO</a>
+        <nav>
+            <ul>
+                <li><a href="about.html">About</a></li>
+                <li><a href="content.html">Content</a></li>
+                <li><a href="contact.html">Contact</a></li>
+                <li>
+                    <button id="theme-toggle" class="theme-toggle" aria-pressed="false" title="Toggle theme"
+                        type="button">
+                        <svg class="icon icon-sun" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"
+                            aria-hidden="true">
+                            <circle cx="12" cy="12" r="4" />
+                        </svg>
+                        <svg class="icon icon-moon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"
+                            aria-hidden="true">
+                            <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z" />
+                        </svg>
+                        <span class="visually-hidden">Toggle theme</span>
+                    </button>
+                </li>
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        <h1>Cross-Chain Settlement — Seamless Interoperability</h1>
+
+        <p>Cross-chain settlement is the process of finalizing value transfers between distinct blockchain networks.
+            SPECTRO abstracts the complexity of traditional bridges by using a <strong>Lock-and-Fulfill</strong> model,
+            where assets are secured on the source chain while liquidity is provided instantly on the destination.</p>
+
+        <h2>Standard Token Support</h2>
+        <ul>
+            <li><strong>ERC-20 Integration:</strong> Native support for fungible tokens, allowing stablecoins and
+                utility tokens to be moved across networks via signed intents.</li>
+            <li><strong>Asset Abstraction:</strong> Users do not need to interact with complex bridge contracts; they
+                simply sign an intent defining their target chain and assets.</li>
+            <li><strong>Liquidity Efficiency:</strong> By utilizing professional solvers, SPECTRO avoids the long
+                withdrawal periods typically associated with optimistic rollups.</li>
+        </ul>
+
+        <h2>Fulfillment Mechanism</h2>
+        <p><strong>Intent Liquidation:</strong> Once an intent is signed, it represents a commitment of funds. Solvers
+            fulfill this commitment on the target chain using their own local liquidity, ensuring the user receives
+            funds without waiting for cross-chain message passing.</p>
+
+        <h2>Technical Safeguards</h2>
+        <p>SPECTRO uses <strong>Verifiable State Proofs</strong> to ensure that settlement only occurs when the protocol
+            can cryptographically confirm that the user's intent was met. This prevents "double-spending" of liquidity
+            and ensures solvers are only reimbursed for valid executions.</p>
+
+        <h2>Key Benefits</h2>
+        <ol>
+            <li><strong>Reduced Latency:</strong> Transfers happen as fast as the target chain's block time, independent
+                of slow cross-chain messaging protocols.</li>
+            <li><strong>Lower Costs:</strong> Batching and solver competition minimize the gas overhead for end-users.
+            </li>
+            <li><strong>Trustless Verification:</strong> The <code>SpectroCore</code> contract acts as an escrow,
+                releasing funds only upon proof of successful fulfillment.</li>
+            <li><strong>Chain Agnostic:</strong> Designed to support any EVM-compatible network using standardized
+                EIP-712 signatures.</li>
+        </ol>
+
+        <h2>Future Interoperability</h2>
+        <p>Beyond simple transfers, SPECTRO's settlement engine can be extended to support cross-chain swaps and complex
+            multi-step DeFi actions, all governed by the same secure intent-centric framework.</p>
+
+        <h2>Security & Standards</h2>
+        <ul>
+            <li>Utilizes <strong>OpenZeppelin</strong> and <strong>Solady</strong> for gas-efficient, audited asset
+                handling.</li>
+            <li>Implements <strong>EIP-712</strong> to ensure users always see the target chain and receiver clearly
+                before signing.</li>
+        </ul>
+
+        <a class="back" href="content.html">← Back to Intents</a>
+    </main>
+
+    <footer>© 2026 - KawanDias</footer>
+
+    <script>
+        (function () {
+            const link = document.getElementById('theme-stylesheet');
+            const btn = document.getElementById('theme-toggle');
+            function updateButton(href) {
+                if (!btn) return;
+                const isLight = !!(href && href.includes('style.light.css'));
+                btn.setAttribute('aria-pressed', isLight ? 'true' : 'false');
+                btn.classList.toggle('is-light', isLight);
+                btn.title = isLight ? 'Dark Mode' : 'Light Mode';
+            }
+            window.toggleTheme = function () {
+                if (!link) return;
+                const href = link.getAttribute('href') || 'style.css';
+                const next = href.includes('style.light.css') ? 'style.css' : 'style.light.css';
+                link.setAttribute('href', next);
+                localStorage.setItem('theme', next);
+                updateButton(next);
+            };
+            const saved = localStorage.getItem('theme');
+            if (saved && link) link.setAttribute('href', saved);
+            updateButton(link && link.getAttribute('href'));
+            if (btn) btn.addEventListener('click', toggleTheme);
+        })();
+    </script>
+</body>
+
+</html>

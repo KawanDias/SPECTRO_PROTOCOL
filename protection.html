@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fraud Protection</title>
+    <link id="theme-stylesheet" rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <header>
+        <a href="index.html" class="logo">SPECTRO</a>
+        <nav>
+            <ul>
+                <li><a href="about.html">About</a></li>
+                <li><a href="content.html">Content</a></li>
+                <li><a href="contact.html">Contact</a></li>
+                <li>
+                    <button id="theme-toggle" class="theme-toggle" aria-pressed="false" title="Toggle theme"
+                        type="button">
+                        <svg class="icon icon-sun" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"
+                            aria-hidden="true">
+                            <circle cx="12" cy="12" r="4" />
+                        </svg>
+                        <svg class="icon icon-moon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"
+                            aria-hidden="true">
+                            <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z" />
+                        </svg>
+                        <span class="visually-hidden">Toggle theme</span>
+                    </button>
+                </li>
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        <h1>Fraud Protection — Safeguarding the Intent Ecosystem</h1>
+
+        <p>Security in the SPECTRO Protocol is built on cryptographic certainty. By combining off-chain signatures with
+            on-chain verification, we ensure that every intent is fulfilled exactly as defined, protecting both users
+            from theft and solvers from non-payment.</p>
+
+        <h2>Deterministic Nonces</h2>
+        <p>To prevent **Replay Attacks**, SPECTRO implements a strict nonce management system. Each intent is assigned a
+            unique identifier that is marked as "used" immediately upon execution, ensuring that a single signature
+            cannot be broadcast twice across the network.</p>
+
+        <h2>Cryptographic State Proofs</h2>
+        <ul>
+            <li><strong>Verifiable Fulfillment:</strong> Solvers must provide proof that the destination chain state
+                matches the user's intent parameters before the settlement is finalized.</li>
+            <li><strong>Trustless Escrow:</strong> Funds are held securely in the <code>SpectroCore</code> contract and
+                are only released when the cryptographic conditions are satisfied.</li>
+            <li><strong>Data Integrity:</strong> EIP-712 signatures ensure that the intent data cannot be tampered with
+                by intermediaries or solvers.</li>
+        </ul>
+
+        <h2>Common Vulnerability Mitigations</h2>
+        <ul>
+            <li><strong>Reentrancy Protection:</strong> Our contracts utilize gas-optimized guards to prevent malicious
+                actors from draining pools through recursive calls.</li>
+            <li><strong>Access Control:</strong> Administrative functions are restricted to verified roles, ensuring
+                that the protocol's core logic remains immutable and secure.</li>
+            <li><strong>Type-Safe Logic:</strong> Leveraging the **Solady** library to prevent numerical overflows and
+                ensure efficient, secure math operations.</li>
+        </ul>
+
+        <h2>User Security Guidelines</h2>
+        <ol>
+            <li><strong>Signature Verification:</strong> Always inspect the EIP-712 popup in your wallet to confirm the
+                <code>targetChain</code> and <code>amount</code>.</li>
+            <li><strong>Deadline Management:</strong> Use short-lived deadlines for urgent transfers to limit the window
+                of exposure for signed intents.</li>
+            <li><strong>Official Endpoints:</strong> Only interact with the protocol through verified RPC providers and
+                the official SPECTRO dashboard.</li>
+        </ol>
+
+        <h2>Infrastructure Hardening</h2>
+        <p>SPECTRO monitors the solver network for malicious behavior. Any attempt to submit invalid proofs results in
+            immediate transaction rejection by the smart contract, maintaining the overall health of the liquidity
+            pools.</p>
+
+        <h2>Technical Resources</h2>
+        <ul>
+            <li><a href="https://github.com/Vectorized/solady">Solady — Optimized Security Patterns</a></li>
+            <li><a href="https://openzeppelin.com/contracts/">OpenZeppelin — Audited Standards</a></li>
+        </ul>
+
+        <a class="back" href="content.html">← Back to Intents</a>
+    </main>
+
+    <footer>© 2026 - KawanDias</footer>
+
+    <script>
+        (function () {
+            const link = document.getElementById('theme-stylesheet');
+            const btn = document.getElementById('theme-toggle');
+            function updateButton(href) {
+                if (!btn) return;
+                const isLight = !!(href && href.includes('style.light.css'));
+                btn.setAttribute('aria-pressed', isLight ? 'true' : 'false');
+                btn.classList.toggle('is-light', isLight);
+                btn.title = isLight ? 'Dark Mode' : 'Light Mode';
+            }
+            window.toggleTheme = function () {
+                if (!link) return;
+                const href = link.getAttribute('href') || 'style.css';
+                const next = href.includes('style.light.css') ? 'style.css' : 'style.light.css';
+                link.setAttribute('href', next);
+                localStorage.setItem('theme', next);
+                updateButton(next);
+            };
+            const saved = localStorage.getItem('theme');
+            if (saved && link) link.setAttribute('href', saved);
+            updateButton(link && link.getAttribute('href'));
+            if (btn) btn.addEventListener('click', toggleTheme);
+        })();
+    </script>
+</body>
+
+</html>

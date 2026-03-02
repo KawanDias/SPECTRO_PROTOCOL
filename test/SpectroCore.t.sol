@@ -74,7 +74,10 @@ contract SpectroCoreTeste is Test {
     spectro.executeIntent(intent, signature);
 
     // Second Execution - may fail
-    vm.expectRevert("S.P.E.C.T.R.O: Nonce already used");
+    vm.expectRevert(
+        abi.encodeWithSelector(NonceAlreadyUsed.selector, 101)
+    );
+
     vm.prank(solver);
     spectro.executeIntent(intent, signature);
 }
@@ -88,7 +91,7 @@ contract SpectroCoreTeste is Test {
     SpectroCore.WithdrawalIntent memory intent = SpectroCore.WithdrawalIntent({
         receiver: user,
         amount: amount,
-        fee: (amount * spectro.FEE_BPS()) / 10000,
+        fee: amount / 200,
         nonce: nonce,
         deadline: block.timestamp + 1 hours,
         targetChainId: block.chainid,

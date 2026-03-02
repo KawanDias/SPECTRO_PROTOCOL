@@ -20,18 +20,7 @@ contract SimulateSolver is Script {
       conditionHash: bytes32(0)
    });   
 
-   bytes32 structHash = keccak256(abi.encode(
-      spectro.INTENT_TYPEHASH(),
-      intent.receiver,
-      intent.amount,
-      intent.fee,
-      intent.nonce,
-      intent.deadline,
-      intent.targetChainId,
-      intent.conditionHash
-   ));
-
-   bytes32 digest = spectro.computeDigest(structHash);
+   bytes32 digest = spectro.computeDigest(intent);
 
    (uint8 v, bytes32 r, bytes32 s) = vm.sign(signerPrivateKey, digest);
    bytes memory signature = abi.encodePacked(r, s, v);

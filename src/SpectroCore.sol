@@ -1,6 +1,19 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
+
+///////////////////
+// Custom Errors //
+///////////////////
+
+error Unauthorized();
+error InvalidSignature();
+error NonceAlreadyUsed(uint256 nonce);
+error IntentExpired();
+error ConditionNotProven(bytes32 hash);
+error ETHTransferFailed(); 
+error IntentAlreadyExecuted();
+
 //////////////////////
 // External imports //
 //////////////////////
@@ -21,8 +34,6 @@ contract  SpectroCore is EIP712, ISpectroEvents, Ownable{
     bytes32 public constant INTENT_TYPEHASH = 
         keccak256("WithdrawalIntent(address receiver,uint256 amount,uint256 fee,uint256 nonce,uint256 deadline,uint256 targetChainId,bytes32 conditionHash)");
 
-    uint256 public constant FEE_BPS = 50; // 0.5% Operator fee
-
     address public immutable BENEFICIARY;
     mapping(uint256 => bool) public usedNonces;
 
@@ -39,21 +50,31 @@ contract  SpectroCore is EIP712, ISpectroEvents, Ownable{
     mapping(bytes32 => bool) public executedIntents;
 
 
+    // Mapping to store conditions already proved by oracles
+    mapping(bytes32 => bool) public provenConditions;
+
+  
+    ////////////
+    // EVENTS //
+    ////////////
+
+    // event to monitore when a conditions is valid
+    event ConditionProven(bytes32 indexed conditionHash);
+
+
     /////////////
     // STRUCTS //
     /////////////
 
-    struct WithdrawalIntent {
-        address receiver;         
-        uint256 amount;       
-        uint256 fee;       
-        uint256 nonce; 
-        uint256 deadline; 
-        uint256 targetChainId;
-        bytes32 conditionHash;    
-    }
-
-
+struct WithdrawalIntent {
+    address receiver;
+    uint256 amount;
+    uint256 fee;
+    uint256 nonce;
+    uint256 deadline;
+    uint256 targetChainId;
+    bytes32 conditionHash;
+}
     ///////////////
     // FUNCTIONS //
     ///////////////
@@ -91,24 +112,23 @@ contract  SpectroCore is EIP712, ISpectroEvents, Ownable{
         bytes calldata signature,
         bytes32 proofOfPayment // ID transation on another chain
     ) external {
-        // 1. Verify if intent already executed
-        bytes32 intentHash = _hashTypedData (keccak256(abi.encode(
-            INTENT_TYPEHASH,
-            intent.receiver,
-            intent.amount,
-            intent.fee,
-            intent.nonce,
-            intent.deadline,
-            intent.targetChainId,
-            intent.conditionHash
-        )));
 
-        require(!executedIntents[intentHash], "Spectro: Intent already executed");
-    require(block.timestamp <= intent.deadline, "Spectro: Intent expired");
+        bytes32 intentHash = computeDigest(intent);
+        
+
+    if (executedIntents[intentHash]) {
+        revert IntentAlreadyExecuted();
+    }
+
+    if (block.timestamp > intent.deadline) {
+        revert IntentExpired();
+    }
 
     // 2. Verify user's signature
     address recoveredUser = ECDSA.recover(intentHash, signature);
-    require(recoveredUser == intent.receiver, "Spectro: Invalid signature");
+    if (recoveredUser != intent.receiver) {
+        revert InvalidSignature();
+    }
 
     // 3. Mark as executed before any state changes to prevent reentrancy
     executedIntents[intentHash] = true;
@@ -121,60 +141,51 @@ contract  SpectroCore is EIP712, ISpectroEvents, Ownable{
     } 
 
     function executeIntent(
-      WithdrawalIntent calldata intent,
-      bytes calldata signature
-    ) external {
-        require(block.timestamp <= intent.deadline, "S.P.E.C.T.R.O: Intent expired"); 
-        require(!usedNonces[intent.nonce], "S.P.E.C.T.R.O: Nonce already used");
-
-        bytes32 digest = computeDigest(intent);
-
-        address signer = ECDSA.recover(digest, signature);
- 
-        require(signer == BENEFICIARY, "S.P.E.C.T.R.O: Unauthorized");
-        usedNonces[intent.nonce] = true;
-        SafeTransferLib.safeTransferETH(intent.receiver, intent.amount);
-        if (intent.fee > 0) {
-            SafeTransferLib.safeTransferETH(msg.sender, intent.fee);
-        }
-        emit IntendSettled(msg.sender, signer, intent.amount, intent.fee);
-    }
-
-    /**
-    * @notice Liquid an intencion for withdrawn presented by an Operator
-    * @param solver The address of the Operator who presented the intent
-    * @param amount The amount to be withdrawn
-    * @param nonce The unique nonce for the intent
-    * @param signature The signature of the BENEFICIARY
-     */
-     function fullfill(
-        address solver,
-        uint256 amount,
-        uint256 nonce,
+        WithdrawalIntent calldata intent,
         bytes calldata signature
     ) external {
-        require(!usedNonces[nonce], "S.P.E.C.T.R.O: Nonce already used");
-
-        // 1. Rebuild intent hash
-        bytes32 structHash = keccak256(abi.encode(INTENT_TYPEHASH,solver,amount,nonce));
-        bytes32 digest = _hashTypedData(structHash);
-
-        // 2. Verify signature
-        if (!BENEFICIARY.isValidSignatureNow(digest, signature)) {
-            revert("S.P.E.C.T.R.O: Invalid signature");
+        // Deadline verification
+        if (block.timestamp > intent.deadline) {
+            revert IntentExpired();
         }
 
-        // 3. Mark nonce as used
-        usedNonces[nonce] = true;
+        // Replay verification
+        if (usedNonces[intent.nonce]) {
+            revert NonceAlreadyUsed(intent.nonce);
+        }
 
-        // 4. Calculate refund and fee
-        uint256 fee = (amount * FEE_BPS) / 10000;
-        uint256 totalRefund = amount + fee;
+        // Digest and signer recover
+        bytes32 digest = computeDigest(intent);
+        address signer = ECDSA.recover(digest, signature);
 
-        // 5. Transfer
-        SafeTransferLib.safeTransferETH(solver, totalRefund);
+        // condition cross chain verification
+        if (intent.conditionHash != bytes32(0)) {
+            if (!provenConditions[intent.conditionHash]) {
+                revert ConditionNotProven(intent.conditionHash);
+            }
+        }
 
-        emit IntendSettled(solver, BENEFICIARY, amount, fee);
+    // auth and verification
+    if (signer != BENEFICIARY) {
+        revert Unauthorized();
+    }
+
+    // execution and tranfers
+    usedNonces[intent.nonce] = true;
+    
+    SafeTransferLib.safeTransferETH(intent.receiver, intent.amount);
+    
+    if (intent.fee > 0) {
+        SafeTransferLib.safeTransferETH(msg.sender, intent.fee);
+    }
+
+    emit IntendSettled(msg.sender, signer, intent.amount, intent.fee);
+}       
+
+    // Temporary function to simulate getting the cross-chain proof 
+    function fulfillCondition(bytes32 conditionHash) external {
+        provenConditions[conditionHash] = true;
+        emit ConditionProven(conditionHash);
     }
 
     // Receive funds to Vesting

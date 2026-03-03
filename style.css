@@ -1,0 +1,508 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: "Segoe UI", Arial, sans-serif;
+}
+
+body {
+    background: radial-gradient(circle at top, #0b1220, #020617 70%);
+    color: #e5e7eb;
+}
+
+html,
+body {
+    height: 100%;
+}
+
+body {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* HEADER */
+
+header {
+    width: 100%;
+    padding: 22px 60px;
+    background: rgba(2, 6, 23, 0.85);
+    backdrop-filter: blur(8px);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: fixed;
+    top: 0;
+    left: 0;
+    border-bottom: 1px solid rgba(56, 189, 248, 0.15);
+    z-index: 999;
+}
+
+.logo {
+    font-size: 22px;
+    font-weight: 700;
+    color: #38bdf8;
+    letter-spacing: 1px;
+    text-decoration: none;
+}
+
+nav ul {
+    list-style: none;
+    display: flex;
+    gap: 35px;
+}
+
+nav a {
+    text-decoration: none;
+    color: #cbd5f5;
+    font-size: 15px;
+    position: relative;
+}
+
+nav a::after {
+    content: "";
+    position: absolute;
+    bottom: -6px;
+    left: 0;
+    width: 0%;
+    height: 2px;
+    background: #38bdf8;
+    transition: 0.3s;
+}
+
+nav a:hover::after {
+    width: 100%;
+}
+
+/* HERO */
+
+.hero {
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    padding-top: 80px;
+}
+
+.hero h1 {
+    font-size: 72px;
+    max-width: 900px;
+    line-height: 1.05;
+    background: linear-gradient(90deg, #38bdf8, #60a5fa);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.hero p {
+    margin-top: 25px;
+    font-size: 22px;
+    color: #94a3b8;
+}
+
+/* SECTION */
+
+.section {
+    padding: 160px 60px 80px 60px;
+    max-width: 1100px;
+    margin: auto;
+}
+
+.section h2 {
+    font-size: 40px;
+    margin-bottom: 25px;
+    color: #38bdf8;
+}
+
+.section p,
+.section li {
+    font-size: 18px;
+    line-height: 1.7;
+    color: #cbd5f5;
+}
+
+/* CARDS OPCIONAIS */
+
+.card {
+    background: rgba(15, 23, 42, 0.7);
+    border: 1px solid rgba(56, 189, 248, 0.15);
+    border-radius: 14px;
+    padding: 25px;
+    margin-top: 20px;
+    transition: 0.3s;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    border-color: #38bdf8;
+}
+
+/* FOOTER */
+
+footer {
+    text-align: center;
+    padding: 30px;
+    background: #020617;
+    color: #64748b;
+    margin-top: 80px;
+    border-top: 1px solid rgba(56, 189, 248, 0.15);
+    position: relative;
+}
+
+/* ===== CONTATO MODERNO ===== */
+
+.contact {
+    opacity: 0;
+    transform: translateY(40px);
+    transition: 1s ease;
+}
+
+.contact.show {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.contact-grid {
+    margin-top: 40px;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    /* allow wrapping to avoid horizontal scrollbar */
+    gap: 25px;
+    justify-content: center;
+    align-items: stretch;
+}
+
+.contact-card {
+    background: rgba(15, 23, 42, 0.7);
+    border: 1px solid rgba(56, 189, 248, 0.2);
+    border-radius: 16px;
+    padding: 30px;
+    text-align: center;
+    transition: 0.3s;
+    backdrop-filter: blur(6px);
+    flex: 1 1 300px;
+    /* flexible: grow/shrink, preferred basis 300px */
+    max-width: 340px;
+    /* cap width so cards remain similar */
+    width: auto;
+    min-width: 220px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.contact-card:hover {
+    transform: translateY(-6px) scale(1.02);
+    border-color: #38bdf8;
+    box-shadow: 0 0 25px rgba(56, 189, 248, 0.25);
+}
+
+.contact-card h3 {
+    color: #38bdf8;
+    margin-bottom: 12px;
+    font-size: 22px;
+}
+
+.contact-card p {
+    color: #cbd5f5;
+    font-size: 16px;
+}
+
+
+/* ===== SOBRE MODERNO ===== */
+
+.about {
+    opacity: 0;
+    transform: translateY(40px);
+    transition: 1s ease;
+}
+
+.about.show {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.about-title {
+    font-size: 44px;
+    margin-bottom: 20px;
+    display: inline-block;
+    background: linear-gradient(90deg, #38bdf8 0%, #60a5fa 100%);
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: transparent;
+}
+
+.about-desc {
+    max-width: 800px;
+    margin-bottom: 50px;
+    color: #94a3b8;
+    font-size: 18px;
+    line-height: 1.7;
+}
+
+.about-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 25px;
+}
+
+.about-card {
+    background: rgba(15, 23, 42, 0.7);
+    border: 1px solid rgba(56, 189, 248, 0.2);
+    border-radius: 16px;
+    padding: 30px;
+    backdrop-filter: blur(6px);
+    transition: 0.3s;
+}
+
+.about-card:hover {
+    transform: translateY(-6px) scale(1.02);
+    border-color: #38bdf8;
+    box-shadow: 0 0 25px rgba(56, 189, 248, 0.25);
+}
+
+.about-card h3 {
+    color: #38bdf8;
+    margin-bottom: 12px;
+    font-size: 20px;
+}
+
+.about-card p {
+    color: #cbd5f5;
+    font-size: 16px;
+    line-height: 1.6;
+}
+
+/* ===== LINKS (conteúdo) ===== */
+.section a,
+.about-desc a,
+.about-card a,
+main a,
+.contact-card a {
+    color: #2563eb;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.section a:visited,
+.about-desc a:visited,
+.about-card a:visited,
+main a:visited,
+.contact-card a:visited {
+    color: #2563eb;
+}
+
+.section a:hover,
+.about-desc a:hover,
+.about-card a:hover,
+main a:hover,
+.contact-card a:hover {
+    text-decoration: underline;
+    opacity: 0.95;
+}
+
+/* ===== CONTACT PAGE LINKS (override) ===== */
+/* Use site cyan for links inside the contact section */
+#contact a,
+#contact a:visited,
+#contact .contact-card a,
+#contact .contact-card a:visited {
+    color: #38bdf8;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+#contact a:hover,
+#contact .contact-card a:hover {
+    text-decoration: none;
+    opacity: 0.95;
+}
+
+/* ===== CONTENT PAGES ===== */
+
+main {
+    padding: 120px 60px 60px;
+    max-width: 1100px;
+    margin: auto;
+}
+
+main h1 {
+    font-size: 40px;
+    margin-bottom: 18px;
+    color: #38bdf8;
+}
+
+main h2 {
+    font-size: 22px;
+    margin-top: 18px;
+    color: #60a5fa;
+}
+
+main p {
+    color: #cbd5f5;
+    font-size: 18px;
+    line-height: 1.7;
+}
+
+.back {
+    margin-top: 20px;
+    display: inline-block;
+    color: #38bdf8;
+    text-decoration: none;
+    border: 1px solid rgba(56, 189, 248, 0.08);
+    padding: 8px 12px;
+    border-radius: 8px;
+    transition: 0.18s ease;
+}
+
+.back:hover {
+    background: rgba(56, 189, 248, 0.04);
+    transform: translateY(-3px);
+}
+
+/* clickable cards used on content.html */
+a.mind-card {
+    display: block;
+    text-decoration: none;
+    color: inherit;
+    background: rgba(15, 23, 42, 0.7);
+    border: 1px solid rgba(56, 189, 248, 0.15);
+    border-radius: 18px;
+    padding: 30px;
+    position: relative;
+    overflow: hidden;
+    transform: translateY(40px);
+    opacity: 0;
+    transition: 0.6s ease;
+}
+
+a.mind-card.show {
+    transform: translateY(0);
+    opacity: 1;
+}
+
+a.mind-card::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(120deg, transparent, rgba(56, 189, 248, 0.12), transparent);
+    opacity: 0;
+    transition: 0.4s;
+}
+
+a.mind-card:hover::before {
+    opacity: 1;
+}
+
+a.mind-card:hover {
+    transform: translateY(-8px) scale(1.02);
+    border-color: #38bdf8;
+    box-shadow: 0 0 25px rgba(56, 189, 248, 0.18);
+}
+
+a.mind-card h3 {
+    color: #38bdf8;
+    margin-bottom: 12px;
+    font-size: 22px;
+}
+
+.glow-line {
+    height: 2px;
+    width: 80px;
+    background: linear-gradient(90deg, #38bdf8, transparent);
+    margin-bottom: 12px;
+}
+
+a.mind-card:focus {
+    outline: 2px solid rgba(56, 189, 248, 0.18);
+    outline-offset: 4px;
+}
+
+@media (max-width: 720px) {
+    header {
+        padding: 18px 20px;
+    }
+
+    main {
+        padding: 110px 20px 40px;
+    }
+
+    nav ul {
+        gap: 16px;
+    }
+}
+
+/* ===== THEME TOGGLE BUTTON (dark mode styles) ===== */
+.visually-hidden {
+    position: absolute !important;
+    height: 1px;
+    width: 1px;
+    overflow: hidden;
+    clip: rect(1px, 1px, 1px, 1px);
+    white-space: nowrap;
+    border: 0;
+    padding: 0;
+    margin: -1px
+}
+
+.theme-toggle {
+    position: relative;
+    width: 64px;
+    height: 34px;
+    border-radius: 999px;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0.01));
+    border: 1px solid rgba(56, 189, 248, 0.12);
+    display: inline-flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 6px;
+    gap: 6px;
+    cursor: pointer;
+    color: inherit;
+    overflow: hidden;
+}
+
+.theme-toggle .icon {
+    width: 16px;
+    height: 16px;
+    display: block
+}
+
+.theme-toggle::after {
+    content: '';
+    position: absolute;
+    top: 6px;
+    left: 6px;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: #0b1220;
+    transition: transform .22s ease, background .22s ease, box-shadow .22s ease;
+    box-shadow: 0 4px 10px rgba(2, 6, 23, 0.6);
+    transform: translateX(0);
+}
+
+.theme-toggle.is-light::after {
+    transform: translateX(30px);
+    background: #ffffff;
+    box-shadow: 0 4px 10px rgba(2, 6, 23, 0.12)
+}
+
+.theme-toggle .icon-sun {
+    fill: #fde68a
+}
+
+.theme-toggle .icon-moon {
+    fill: #94a3b8;
+    opacity: 0.8
+}
+
+.theme-toggle.is-light .icon-sun {
+    opacity: 1
+}
+
+.theme-toggle.is-light .icon-moon {
+    opacity: 0.45
+}

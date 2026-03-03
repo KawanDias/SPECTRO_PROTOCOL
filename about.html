@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About the Project</title>
+    <link id="theme-stylesheet" rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <header>
+        <a href="index.html" class="logo">SPECTRO</a>
+
+        <nav>
+            <ul>
+                <li><a href="about.html">About</a></li>
+                <li><a href="content.html">Intents</a></li>
+                <li><a href="contact.html">Contact</a></li>
+                <li>
+                    <button id="theme-toggle" class="theme-toggle" aria-pressed="false" title="Toggle theme"
+                        type="button">
+                        <svg class="icon icon-sun" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"
+                            aria-hidden="true">
+                            <circle cx="12" cy="12" r="4" />
+                        </svg>
+                        <svg class="icon icon-moon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"
+                            aria-hidden="true">
+                            <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z" />
+                        </svg>
+                        <span class="visually-hidden">Toggle theme</span>
+                    </button>
+                </li>
+            </ul>
+        </nav>
+    </header>
+
+    <section class="section about" id="about">
+
+        <h2 class="about-title">About SPECTRO Protocol</h2>
+
+        <p class="about-desc">
+            SPECTRO is an educational initiative designed to demystify <strong>Intent-Centric Design</strong> and cross-chain interoperability. Our focus is on providing clear, technical insights into how solvers and EIP-712 compliance are shaping the future of decentralized finance.
+        </p>
+
+        <p class="about-desc">Interested in the technical mechanics? Explore our deep dives on the <a
+                href="content.html">Intents page</a>.</p>
+
+        <div class="about-grid">
+
+            <div class="about-card">
+                <h3>Mission</h3>
+                <p>To bridge the gap between complex blockchain infrastructure and user-friendly outcomes through the study of Intents and Abstraction.</p>
+            </div>
+
+            <div class="about-card">
+                <h3>Vision</h3>
+                <p>A decentralized web where users focus on <strong>what</strong> they want to achieve, while professional solvers handle <strong>how</strong> it happens.</p>
+            </div>
+
+            <div class="about-card">
+                <h3>Values</h3>
+                <p>Security-first development, cryptographic transparency via EIP-712, and trustless execution models.</p>
+            </div>
+
+            <div class="about-card">
+                <h3>Lead Dev</h3>
+                <p>Founded and maintained by <strong>Kawan Dias</strong>. For collaborations regarding the SPECTRO framework, visit our <a
+                        href="contact.html">Contact page</a>.</p>
+            </div>
+
+        </div>
+    </section>
+
+    <footer>© 2026 - KawanDias</footer>
+
+    <script>
+        window.addEventListener("load", () => {
+            const aboutSection = document.getElementById("about");
+            if(aboutSection) aboutSection.classList.add("show");
+        });
+
+        (function () {
+            const link = document.getElementById('theme-stylesheet');
+            const btn = document.getElementById('theme-toggle');
+            function updateButton(href) {
+                if (!btn) return;
+                const isLight = !!(href && href.includes('style.light.css'));
+                btn.setAttribute('aria-pressed', isLight ? 'true' : 'false');
+                btn.classList.toggle('is-light', isLight);
+                btn.title = isLight ? 'Dark Mode' : 'Light Mode';
+            }
+            window.toggleTheme = function () {
+                if (!link) return;
+                const href = link.getAttribute('href') || 'style.css';
+                const next = href.includes('style.light.css') ? 'style.css' : 'style.light.css';
+                link.setAttribute('href', next);
+                localStorage.setItem('theme', next);
+                updateButton(next);
+            };
+            const saved = localStorage.getItem('theme');
+            if (saved && link) link.setAttribute('href', saved);
+            updateButton(link && link.getAttribute('href'));
+            if (btn) btn.addEventListener('click', toggleTheme);
+        })();
+    </script>
+
+</body>
+
+</html>

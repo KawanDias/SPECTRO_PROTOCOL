@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Intent-Centric Architecture</title>
+    <link id="theme-stylesheet" rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <header>
+        <a href="index.html" class="logo">SPECTRO</a>
+        <nav>
+            <ul>
+                <li><a href="about.html">About</a></li>
+                <li><a href="content.html">Content</a></li>
+                <li><a href="contact.html">Contact</a></li>
+                <li>
+                    <button id="theme-toggle" class="theme-toggle" aria-pressed="false" title="Toggle theme"
+                        type="button">
+                        <svg class="icon icon-sun" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"
+                            aria-hidden="true">
+                            <circle cx="12" cy="12" r="4" />
+                        </svg>
+                        <svg class="icon icon-moon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"
+                            aria-hidden="true">
+                            <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z" />
+                        </svg>
+                        <span class="visually-hidden">Toggle theme</span>
+                    </button>
+                </li>
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        <h1>Intent-Centric Design</h1>
+
+        <p>An intent-centric architecture is a design framework where users sign off-chain messages (intents) to specify
+            a desired state change, rather than manually executing a sequence of transactions. This abstracts blockchain
+            complexity and optimizes execution through professional solvers.</p>
+
+        <h2>Core Principles</h2>
+        <ul>
+            <li><strong>Declarative Logic:</strong> Users define "what" they want to achieve instead of "how" to do it.
+            </li>
+            <li><strong>Off-Chain Efficiency:</strong> Signatures are collected off-chain, reducing immediate gas costs
+                and allowing for flexible fulfillment.</li>
+            <li><strong>Solver Competition:</strong> A decentralized network of solvers competes to fulfill intents,
+                ensuring optimal rates and speed.</li>
+        </ul>
+
+        <h2>How it Works (Summary)</h2>
+        <p>When an intent is signed, it is broadcast to a solver mempool. Solvers verify the validity and profitability
+            of the intent. The winning solver then executes the fulfillment on-chain, providing the required liquidity.
+            Finally, the smart contract verifies the execution and settles the transaction.</p>
+
+        <h2>Technical Components</h2>
+        <p>The system relies on <strong>EIP-712 Signing</strong> for secure, human-readable authorization.
+            <strong>Deterministic Nonces</strong> are used to prevent replay attacks and ensure transaction ordering.
+            Additionally, <strong>Verifiable State Proofs</strong> confirm that target chain conditions are met before
+            final settlement.</p>
+
+        <h2>Practical Use Cases</h2>
+        <p><strong>Cross-Chain Bridging:</strong> Seamlessly transferring assets between disparate networks without
+            manual bridging steps.</p>
+        <p><strong>Gasless Transactions:</strong> Allowing solvers to cover gas fees in exchange for a protocol fee,
+            significantly improving the user experience.</p>
+        <p><strong>Automated Liquidation:</strong> Triggering complex financial actions based on predefined state
+            conditions and verifiable proofs.</p>
+
+        <h2>Limitations and Solutions</h2>
+        <p>Common challenges include solver liveness and information asymmetry. Solutions involve decentralized solver
+            registries, reputation systems, and robust slashing mechanisms for non-fulfillment to ensure network
+            reliability.</p>
+
+        <h2>Getting Started</h2>
+        <ol>
+            <li><strong>Define Intent:</strong> Specify your transaction parameters such as receiver, amount, and
+                deadline.</li>
+            <li><strong>Sign Message:</strong> Securely authorize the intent using an EIP-712 compatible wallet like
+                MetaMask.</li>
+            <li><strong>Track Fulfillment:</strong> Monitor the on-chain settlement status via the Spectro Protocol
+                dashboard.</li>
+        </ol>
+
+        <h2>Recommended Resources</h2>
+        <ul>
+            <li><a href="#">Spectro Core Documentation</a></li>
+            <li><a href="https://eips.ethereum.org/EIPS/eip-712">EIP-712 Standard Specification</a></li>
+            <li><a href="https://github.com/Vectorized/solady">Solady Library Documentation</a></li>
+        </ul>
+
+        <a class="back" href="content.html">← Back to Intents</a>
+    </main>
+
+    <footer>© 2026 - KawanDias</footer>
+
+    <script>
+        // O script de tema permanece o mesmo para manter a funcionalidade
+        (function () {
+            const link = document.getElementById('theme-stylesheet');
+            const btn = document.getElementById('theme-toggle');
+            function updateButton(href) {
+                if (!btn) return;
+                const isLight = !!(href && href.includes('style.light.css'));
+                btn.setAttribute('aria-pressed', isLight ? 'true' : 'false');
+                btn.classList.toggle('is-light', isLight);
+                btn.title = isLight ? 'Dark Mode' : 'Light Mode';
+            }
+            window.toggleTheme = function () {
+                if (!link) return;
+                const href = link.getAttribute('href') || 'style.css';
+                const next = href.includes('style.light.css') ? 'style.css' : 'style.light.css';
+                link.setAttribute('href', next);
+                localStorage.setItem('theme', next);
+                updateButton(next);
+            };
+            const saved = localStorage.getItem('theme');
+            if (saved && link) link.setAttribute('href', saved);
+            updateButton(link && link.getAttribute('href'));
+            if (btn) btn.addEventListener('click', toggleTheme);
+        })();
+    </script>
+</body>
+
+</html>

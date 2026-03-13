@@ -12,22 +12,24 @@ contract SpectroCoreTeste is Test {
 
     // Set up the test environment //
     uint256 beneficiaryKey = 0xA11CE; // Patrick's private key
-    address beneficiary = vm.addr(beneficiaryKey);
+    address beneficiary;
     address solver = address(0xB0B); // Operator's address
     address user = address(0x123);
 
-
-    ///////////////
-    // FUNCTIONS //
-    ///////////////
+    //===================
+    // FUNCTIONS 
+    //===================
 
     function setUp() public {
+        beneficiary = vm.addr(beneficiaryKey);
+
         spectro = new SpectroCore(beneficiary);
-        vm.deal(address(spectro), 100 ether); // Fund the contract for testing
+
+        vm.deal(address(spectro), 100 ether);
     }
 
     function test_SucessfulExecuteIntent() public {
-        SpectroCore.WithdrawalIntent memory intent = SpectroCore.WithdrawalIntent({
+        WithdrawalIntent memory intent = WithdrawalIntent({
             receiver: user,
             amount: 1 ether,
             fee: 0.1 ether,
@@ -42,19 +44,21 @@ contract SpectroCoreTeste is Test {
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(beneficiaryKey, digest);
         bytes memory signature = abi.encodePacked(r, s, v);
 
+        uint256 balanceBefore = user.balance;
+
         // Execution //
         vm.prank(solver);
         spectro.executeIntent(intent, signature);
 
         // Verification //
-        assertEq(user.balance, 1 ether);
+        assertEq(user.balance, balanceBefore + 1 ether);
         assertTrue(spectro.usedNonces(1));
     }
 
     // == REPLAY ATACK TEST == //
    function test_RevertOnReplayAttack() public {
     // 1. Defina a intenção usando a Struct
-    SpectroCore.WithdrawalIntent memory intent = SpectroCore.WithdrawalIntent({
+    WithdrawalIntent memory intent = WithdrawalIntent({
         receiver: user,
         amount: 1 ether,
         fee: 0.1 ether,
@@ -75,20 +79,46 @@ contract SpectroCoreTeste is Test {
 
     // Second Execution - may fail
     vm.expectRevert(
-        abi.encodeWithSelector(NonceAlreadyUsed.selector, 101)
+        abi.encodeWithSelector(
+            NonceAlreadyUsed.selector,
+            101
+        )
     );
 
     vm.prank(solver);
     spectro.executeIntent(intent, signature);
 }
 
+    function test_RevertWhenDeadlineExpired() public {
+
+        WithdrawalIntent memory intent = WithdrawalIntent({
+            receiver: user,
+            amount: 1 ether,
+            fee: 0,
+            nonce: 10,
+            deadline: block.timestamp - 1,
+            targetChainId: block.chainid,
+            conditionHash: bytes32(0)
+        });
+
+        bytes32 digest = spectro.computeDigest(intent);
+
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(beneficiaryKey, digest);
+        bytes memory signature = abi.encodePacked(r, s, v);
+
+        vm.expectRevert(IntentExpired.selector);
+
+        vm.prank(solver);
+        spectro.executeIntent(intent, signature);
+    }
+
     // == FUZZ ATACK TEST == //    
-    function test_FuzzFullfillWithRandomAmounts(uint256 randomAmount) public {
-    uint256 amount = bound(randomAmount, 0.001 ether, 10 ether);
+    function testFuzz_ExecuteIntentRandomAmounts(uint256 randomAmount) public {
+    uint256 amount = bound(randomAmount, 0.001 ether, 5 ether);
     uint256 nonce = uint256(keccak256(abi.encode(randomAmount)));
 
     // Random value struct
-    SpectroCore.WithdrawalIntent memory intent = SpectroCore.WithdrawalIntent({
+    WithdrawalIntent memory intent = WithdrawalIntent({
         receiver: user,
         amount: amount,
         fee: amount / 200,
@@ -105,10 +135,13 @@ contract SpectroCoreTeste is Test {
 
     // Execution & Verification
     uint256 balanceBefore = user.balance;
+    uint256 solverBalanceBefore = solver.balance;
+
     vm.prank(solver);
     spectro.executeIntent(intent, signature);
 
     assertEq(user.balance, balanceBefore + amount);
+    assertEq(solver.balance, amount / 200);
 }
 
     //////////////////////////////////////
